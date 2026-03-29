@@ -8,6 +8,7 @@ from tc_synthetic.structures import (
     build_equicorrelation_matrix,
     build_factor_correlation_matrix,
     build_near_duplicate_correlation_matrix,
+    build_nonlinear_redundancy_groups,
     build_one_factor_correlation_matrix,
 )
 from tc_synthetic.utils import (
@@ -426,14 +427,14 @@ def test_build_near_duplicate_correlation_matrix_raises_for_boolean_rho_backgrou
 
 def test_build_near_duplicate_correlation_matrix_raises_for_rho_duplicate_above_one() -> None:
     """Verifica que ``rho_duplicate > 1`` falla."""
-    with pytest.raises(ValueError, match="rho_within must be less than or equal to 1"):
+    with pytest.raises(ValueError, match="rho_duplicate must be less than or equal to 1"):
         build_near_duplicate_correlation_matrix([2, 2], 1.1, 0.1)
 
 
 
 def test_build_near_duplicate_correlation_matrix_raises_for_rho_background_above_one() -> None:
     """Verifica que ``rho_background > 1`` falla."""
-    with pytest.raises(ValueError, match="rho_between must be less than or equal to 1"):
+    with pytest.raises(ValueError, match="rho_background must be less than or equal to 1"):
         build_near_duplicate_correlation_matrix([2, 2], 0.95, 1.1)
 
 
@@ -698,3 +699,131 @@ def test_build_one_factor_correlation_matrix_raises_for_loading_above_one() -> N
     """Verifica que ``abs(beta_i) > 1`` falla."""
     with pytest.raises(ValueError, match=r"loadings must satisfy abs\(value\) <= 1"):
         build_one_factor_correlation_matrix(np.array([1.2, 0.3]))
+
+
+def test_build_nonlinear_redundancy_groups_returns_normalized_structure() -> None:
+    """Verifica que la funcion devuelve el diccionario esperado."""
+    result = build_nonlinear_redundancy_groups([[0, 1], [2, 3]], n_assets=4, strength=0.8)
+
+    assert isinstance(result, dict)
+    assert set(result) == {"groups", "n_assets", "strength"}
+    assert result["groups"] == [[0, 1], [2, 3]]
+    assert result["n_assets"] == 4
+    assert result["strength"] == 0.8
+
+
+
+def test_build_nonlinear_redundancy_groups_accepts_single_group() -> None:
+    """Verifica que se acepta un unico grupo."""
+    result = build_nonlinear_redundancy_groups([[1, 3]], n_assets=4, strength=1.0)
+
+    assert result == {
+        "groups": [[1, 3]],
+        "n_assets": 4,
+        "strength": 1.0,
+    }
+
+
+
+def test_build_nonlinear_redundancy_groups_allows_partial_grouping() -> None:
+    """Verifica que no es necesario agrupar todos los activos."""
+    result = build_nonlinear_redundancy_groups([[0, 2]], n_assets=4, strength=0.5)
+
+    assert result == {
+        "groups": [[0, 2]],
+        "n_assets": 4,
+        "strength": 0.5,
+    }
+
+
+
+def test_build_nonlinear_redundancy_groups_raises_for_non_list_groups() -> None:
+    """Verifica que ``groups`` debe ser una lista."""
+    with pytest.raises(TypeError, match="groups must be a list"):
+        build_nonlinear_redundancy_groups(([0, 1], [2, 3]), n_assets=4, strength=0.8)
+
+
+
+def test_build_nonlinear_redundancy_groups_raises_for_non_list_group() -> None:
+    """Verifica que cada grupo debe ser una lista."""
+    with pytest.raises(TypeError, match="each group must be a list"):
+        build_nonlinear_redundancy_groups([[0, 1], (2, 3)], n_assets=4, strength=0.8)
+
+
+
+def test_build_nonlinear_redundancy_groups_raises_for_empty_group() -> None:
+    """Verifica que no se aceptan grupos vacios."""
+    with pytest.raises(ValueError, match="groups must not contain empty lists"):
+        build_nonlinear_redundancy_groups([[0, 1], []], n_assets=4, strength=0.8)
+
+
+
+def test_build_nonlinear_redundancy_groups_raises_for_non_integer_index() -> None:
+    """Verifica que los indices deben ser enteros estrictos."""
+    with pytest.raises(TypeError, match="group indices must be integers"):
+        build_nonlinear_redundancy_groups([[0, 1.5]], n_assets=4, strength=0.8)
+
+
+
+def test_build_nonlinear_redundancy_groups_raises_for_boolean_index() -> None:
+    """Verifica que los indices no aceptan booleanos."""
+    with pytest.raises(TypeError, match="group indices must be integers"):
+        build_nonlinear_redundancy_groups([[0, True]], n_assets=4, strength=0.8)
+
+
+
+def test_build_nonlinear_redundancy_groups_raises_for_negative_index() -> None:
+    """Verifica que los indices negativos fallan."""
+    with pytest.raises(ValueError, match="group indices must be within range"):
+        build_nonlinear_redundancy_groups([[0, -1]], n_assets=4, strength=0.8)
+
+
+
+def test_build_nonlinear_redundancy_groups_raises_for_out_of_range_index() -> None:
+    """Verifica que los indices fuera de rango fallan."""
+    with pytest.raises(ValueError, match="group indices must be within range"):
+        build_nonlinear_redundancy_groups([[0, 4]], n_assets=4, strength=0.8)
+
+
+
+def test_build_nonlinear_redundancy_groups_raises_for_repeated_index_across_groups() -> None:
+    """Verifica que un indice no puede repetirse en grupos distintos."""
+    with pytest.raises(ValueError, match="group indices must be unique across groups"):
+        build_nonlinear_redundancy_groups([[0, 1], [1, 2]], n_assets=4, strength=0.8)
+
+
+
+def test_build_nonlinear_redundancy_groups_raises_for_invalid_n_assets() -> None:
+    """Verifica que ``n_assets=0`` falla."""
+    with pytest.raises(ValueError, match="n_assets must be greater than 0"):
+        build_nonlinear_redundancy_groups([[0, 1]], n_assets=0, strength=0.8)
+
+
+
+@pytest.mark.parametrize("strength", ["x", True])
+def test_build_nonlinear_redundancy_groups_raises_for_invalid_strength_type(
+    strength: object,
+) -> None:
+    """Verifica que ``strength`` debe ser numerico y no booleano."""
+    with pytest.raises(TypeError, match="strength must be a number"):
+        build_nonlinear_redundancy_groups([[0, 1]], n_assets=4, strength=strength)
+
+
+
+def test_build_nonlinear_redundancy_groups_raises_for_negative_strength() -> None:
+    """Verifica que ``strength < 0`` falla."""
+    with pytest.raises(ValueError, match="strength must be between 0 and 1"):
+        build_nonlinear_redundancy_groups([[0, 1]], n_assets=4, strength=-0.1)
+
+
+
+def test_build_nonlinear_redundancy_groups_raises_for_strength_above_one() -> None:
+    """Verifica que ``strength > 1`` falla."""
+    with pytest.raises(ValueError, match="strength must be between 0 and 1"):
+        build_nonlinear_redundancy_groups([[0, 1]], n_assets=4, strength=1.1)
+
+
+
+
+
+

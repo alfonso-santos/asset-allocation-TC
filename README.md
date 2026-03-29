@@ -1,7 +1,7 @@
-﻿# asset-allocation-TC
+# tc_synthetic
 
-Base de proyecto Python con estructura moderna, entorno virtual local y
-estructura orientada a experimentacion reproducible para un paper.
+Toolbox Python para generacion de datos sinteticos, con estructura moderna,
+entorno virtual local y organizacion orientada a experimentacion reproducible.
 
 ## Estructura
 
@@ -43,10 +43,11 @@ estructura orientada a experimentacion reproducible para un paper.
 |-- scripts/
 |   `-- README.md
 |-- src/
-|   `-- asset_allocation_tc/
+|   `-- tc_synthetic/
 |       |-- __init__.py
-|       |-- cli.py
-|       `-- __main__.py
+|       |-- specs.py
+|       |-- structures.py
+|       `-- utils.py
 |-- tests/
 |   |-- __init__.py
 |   `-- test_smoke.py
@@ -81,6 +82,6 @@ python -m venv .venv
 .venv\Scripts\Activate.ps1
 python -m pip install --upgrade pip setuptools wheel
 pip install -e .[dev]
-pytest
-python -m asset_allocation_tc
+python -m pytest
+python -c "import tc_synthetic; print(tc_synthetic.__version__)"
 ```

@@ -14,6 +14,7 @@ __all__ = [
     "build_equicorrelation_matrix",
     "build_block_correlation_matrix",
     "build_near_duplicate_correlation_matrix",
+    "build_nonlinear_redundancy_groups",
     "build_one_factor_correlation_matrix",
     "build_factor_correlation_matrix",
 ]
@@ -98,6 +99,48 @@ def build_near_duplicate_correlation_matrix(
 
 
 
+def build_nonlinear_redundancy_groups(
+    groups: list[list[int]],
+    n_assets: int,
+    strength: float,
+) -> dict[str, object]:
+    """Valida y normaliza grupos de redundancia no lineal potencial."""
+    n_assets = validate_n_assets(n_assets)
+    if not isinstance(groups, list):
+        raise TypeError("groups must be a list")
+    if isinstance(strength, bool) or not isinstance(strength, (int, float)):
+        raise TypeError("strength must be a number")
+    if strength < 0 or strength > 1:
+        raise ValueError("strength must be between 0 and 1")
+
+    normalized_groups: list[list[int]] = []
+    seen_indices: set[int] = set()
+    for group in groups:
+        if not isinstance(group, list):
+            raise TypeError("each group must be a list")
+        if not group:
+            raise ValueError("groups must not contain empty lists")
+
+        normalized_group: list[int] = []
+        for index in group:
+            if isinstance(index, bool) or not isinstance(index, int):
+                raise TypeError("group indices must be integers")
+            if index < 0 or index >= n_assets:
+                raise ValueError("group indices must be within range")
+            if index in seen_indices:
+                raise ValueError("group indices must be unique across groups")
+            normalized_group.append(index)
+            seen_indices.add(index)
+
+        normalized_groups.append(normalized_group)
+
+    return {
+        "groups": normalized_groups,
+        "n_assets": n_assets,
+        "strength": float(strength),
+    }
+
+
 def build_factor_correlation_matrix(loadings: np.ndarray) -> np.ndarray:
     """Construye una matriz de correlacion multifactor a partir de una matriz de loadings."""
     if not isinstance(loadings, np.ndarray):
@@ -145,4 +188,5 @@ def build_one_factor_correlation_matrix(loadings: np.ndarray) -> np.ndarray:
         if np.all(np.isfinite(beta)) and np.any(np.abs(beta) > 1.0):
             raise ValueError("loadings must satisfy abs(value) <= 1")
     return build_factor_correlation_matrix(loadings.reshape(-1, 1))
+
 

@@ -3,18 +3,15 @@ requires = ["setuptools>=69", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "asset-allocation-tc"
+name = "tc_synthetic"
 version = "0.1.0"
-description = "Base project scaffold for a Python application."
+description = "Toolbox para generacion de datos sinteticos."
 readme = "README.md"
 requires-python = ">=3.11"
 authors = [
   { name = "Project Team" }
 ]
 dependencies = []
-
-[project.scripts]
-asset-allocation-tc = "asset_allocation_tc.cli:main"
 
 [project.optional-dependencies]
 dev = [

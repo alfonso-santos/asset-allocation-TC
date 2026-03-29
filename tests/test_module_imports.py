@@ -41,3 +41,84 @@ def test_package_exposes_version_string() -> None:
     """Verifica que la version del paquete existe y es una cadena."""
     assert hasattr(tc_synthetic, "__version__")
     assert isinstance(tc_synthetic.__version__, str)
+
+
+# === Added in Step Final.1 ===
+
+@pytest.mark.parametrize(
+    "name",
+    [
+        "MarginalSpec",
+        "ScenarioSpec",
+        "generate_static_scenario_data",
+        "generate_two_state_scenario_data",
+        "generate_special_structure_data",
+        "compute_basic_diagnostics",
+        "plot_sample_paths",
+        "run_static_smoke",
+    ],
+)
+def test_package_exposes_main_api_attributes(name: str) -> None:
+    """Verifica que el paquete raiz expone atributos principales."""
+    assert hasattr(tc_synthetic, name)
+
+
+@pytest.mark.parametrize(
+    "name",
+    [
+        "MarginalSpec",
+        "ScenarioSpec",
+        "generate_static_scenario_data",
+        "generate_two_state_scenario_data",
+        "generate_special_structure_data",
+        "compute_basic_diagnostics",
+        "plot_sample_paths",
+        "run_static_smoke",
+    ],
+)
+def test_package_all_contains_main_api_names(name: str) -> None:
+    """Verifica que ``__all__`` incluye nombres principales del paquete."""
+    assert name in tc_synthetic.__all__
+
+
+def test_package_version_matches_expected_public_version() -> None:
+    """Verifica que la version publica del paquete coincide con la esperada."""
+    assert tc_synthetic.__version__ == "0.1.0"
+
+
+# === Added in Step Final.2 ===
+
+@pytest.mark.parametrize(
+    "name",
+    [
+        "estimate_rbig_total_correlation",
+        "estimate_rbig_joint_entropy",
+        "estimate_rbig_mutual_information",
+        "compute_information_diagnostics",
+        "compute_state_conditioned_information_diagnostics",
+        "compute_pairwise_mutual_information",
+        "compute_pairwise_information_correlation",
+        "compute_state_conditioned_mutual_information",
+    ],
+)
+def test_package_exposes_rbig_api_attributes(name: str) -> None:
+    """Verifica que el paquete raiz expone los helpers y diagnosticos RBIG."""
+    assert hasattr(tc_synthetic, name)
+
+
+@pytest.mark.parametrize(
+    "name",
+    [
+        "estimate_rbig_total_correlation",
+        "estimate_rbig_joint_entropy",
+        "estimate_rbig_mutual_information",
+        "compute_information_diagnostics",
+        "compute_state_conditioned_information_diagnostics",
+        "compute_pairwise_mutual_information",
+        "compute_pairwise_information_correlation",
+        "compute_state_conditioned_mutual_information",
+    ],
+)
+def test_package_all_contains_rbig_api_names(name: str) -> None:
+    """Verifica que ``__all__`` incluye los nombres RBIG expuestos."""
+    assert name in tc_synthetic.__all__
